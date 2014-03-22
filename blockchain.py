@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 class Base(object):
     def __init__(self, data, handler):
         self.data = data
@@ -59,6 +62,8 @@ class Block(Base):
         for i in range(transaction_count):
             Transaction(data)
 
+        print(magic_network_id)
+
 
 class Transaction(Base):
 
@@ -93,3 +98,12 @@ class Output(Base):
         value = self.get_uint64()
         script_length = self.get_varlen_int()
         script = self.get_char(script_length)
+
+
+if __name__ == "__main__":
+    import sys
+
+    filename = sys.argv[1]
+    with open(filename) as f:
+        data = f.read()
+        Block(data, None)
