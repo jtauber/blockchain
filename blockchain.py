@@ -6,9 +6,11 @@ class BlockChain:
         self.data = data
         self.handler = handler
         self.index = 0
+        self.block_count = 0
 
         while self.index < len(self.data):
             self.parse_block()
+            self.block_count += 1
 
     def get_byte(self):
         data = self.data[self.index]
@@ -57,7 +59,7 @@ class BlockChain:
         for i in range(transaction_count):
             self.parse_transaction()
 
-        print(magic_network_id)
+        print("{} nonce={}".format(self.block_count, nonce))
 
     def parse_transaction(self):
         version_number = self.get_uint32()
