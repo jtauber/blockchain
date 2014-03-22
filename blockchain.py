@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 
+import datetime
+
+
 class BlockChain:
     def __init__(self, data, handler=None):
         self.data = data
@@ -31,6 +34,9 @@ class BlockChain:
     def get_uint64(self):
         return self.get_uint32() + self.get_uint32() << 32
 
+    def get_timestamp(self):
+        return datetime.datetime.fromtimestamp(self.get_uint32())
+
     def get_hash(self):
         return self.get_bytes(32)
 
@@ -51,7 +57,7 @@ class BlockChain:
         block_format_version = self.get_uint32()
         hash_of_previous_block = self.get_hash()
         merkle_root = self.get_hash()
-        timestamp = self.get_uint32()
+        timestamp = self.get_timestamp()
         bits = self.get_uint32()
         nonce = self.get_uint32()
         transaction_count = self.get_varlen_int()
@@ -59,7 +65,7 @@ class BlockChain:
         for i in range(transaction_count):
             self.parse_transaction()
 
-        print("{} nonce={}".format(self.block_count, nonce))
+        print("{} timestamp={} nonce={}".format(self.block_count, timestamp, nonce))
 
     def parse_transaction(self):
         version_number = self.get_uint32()
