@@ -26,13 +26,13 @@ class BlockChain:
         return data
 
     def get_uint16(self):
-        return self.get_byte() + self.get_byte() << 8
+        return self.get_byte() + (self.get_byte() << 8)
 
     def get_uint32(self):
-        return self.get_uint16() + self.get_uint16() << 16
+        return self.get_uint16() + (self.get_uint16() << 16)
 
     def get_uint64(self):
-        return self.get_uint32() + self.get_uint32() << 32
+        return self.get_uint32() + (self.get_uint32() << 32)
 
     def get_timestamp(self):
         return datetime.datetime.fromtimestamp(self.get_uint32())
