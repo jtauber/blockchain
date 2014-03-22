@@ -104,6 +104,6 @@ if __name__ == "__main__":
     import sys
 
     filename = sys.argv[1]
-    with open(filename) as f:
+    with open(filename, "rb") as f:
         data = f.read()
         Block(data, None)
