@@ -2,7 +2,7 @@
 
 
 class Base(object):
-    def __init__(self, data, handler):
+    def __init__(self, data, handler=None):
         self.data = data
         self.handler = handler
         self.index = 0
@@ -106,4 +106,4 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     with open(filename, "rb") as f:
         data = f.read()
-        Block(data, None)
+        Block(data)
