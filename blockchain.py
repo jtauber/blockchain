@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 
 
-class Base(object):
+class BlockChain:
     def __init__(self, data, handler=None):
         self.data = data
         self.handler = handler
         self.index = 0
-        self.init()
-        self.parse()
 
-    def init(self):
-        pass
+        while self.index < len(self.data):
+            self.parse_block()
 
     def get_byte(self):
         data = self.data[self.index]
@@ -45,10 +43,7 @@ class Base(object):
         elif code == 0xFF:
             return self.get_uint64()
 
-
-class Block(Base):
-
-    def parse(self):
+    def parse_block(self):
         magic_network_id = self.get_uint32()
         block_length = self.get_uint32()
         block_format_version = self.get_uint32()
@@ -60,41 +55,32 @@ class Block(Base):
         transaction_count = self.get_varlen_int()
 
         for i in range(transaction_count):
-            Transaction(data)
+            self.parse_transaction()
 
         print(magic_network_id)
 
-
-class Transaction(Base):
-
-    def parse(self):
+    def parse_transaction(self):
         version_number = self.get_uint32()
         input_count = self.get_varlen_int()
 
         for i in range(input_count):
-            Input(data)
+            self.parse_input()
 
         output_count = self.get_varlen_int()
 
         for i in range(output_count):
-            Output(data)
+            self.parse_output()
 
         transaction_lock_time = self.get_uint32()
 
-
-class Input(Base):
-
-    def parse(self):
+    def parse_input(self):
         transaction_hash = self.get_hash()
         transaction_index = self.get_uint32()
         script_length = self.get_varlen_int()
         script = self.get_bytes(script_length)
         sequence_number = self.get_uint32()
 
-
-class Output(Base):
-
-    def parse(self):
+    def parse_output(self):
         value = self.get_uint64()
         script_length = self.get_varlen_int()
         script = self.get_bytes(script_length)
@@ -106,4 +92,4 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     with open(filename, "rb") as f:
         data = f.read()
-        Block(data)
+        BlockChain(data)
