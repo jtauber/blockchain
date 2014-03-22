@@ -88,7 +88,7 @@ class Input(Base):
         transaction_hash = self.get_hash()
         transaction_index = self.get_uint32()
         script_length = self.get_varlen_int()
-        script = self.get_char(script_length)
+        script = self.get_bytes(script_length)
         sequence_number = self.get_uint32()
 
 
@@ -97,7 +97,7 @@ class Output(Base):
     def parse(self):
         value = self.get_uint64()
         script_length = self.get_varlen_int()
-        script = self.get_char(script_length)
+        script = self.get_bytes(script_length)
 
 
 if __name__ == "__main__":
