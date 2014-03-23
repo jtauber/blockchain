@@ -35,7 +35,7 @@ class BlockChain:
         return self.get_uint32() + (self.get_uint32() << 32)
 
     def get_timestamp(self):
-        return datetime.datetime.fromtimestamp(self.get_uint32())
+        return datetime.datetime.utcfromtimestamp(self.get_uint32())
 
     def get_hash(self):
         return self.get_bytes(32)
