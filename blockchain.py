@@ -23,12 +23,12 @@ class BlockChain:
 
     def peek_bytes(self, length=1):
         data = self.data[self.index:self.index + length]
-        return data[::-1]
+        return data
 
     def get_bytes(self, length=1):
         data = self.data[self.index:self.index + length]
         self.index += length
-        return data[::-1]
+        return data
 
     def get_uint16(self):
         return self.get_byte() + (self.get_byte() << 8)
@@ -43,7 +43,7 @@ class BlockChain:
         return datetime.datetime.utcfromtimestamp(self.get_uint32())
 
     def get_hash(self):
-        return self.get_bytes(32)
+        return binascii.hexlify(self.get_bytes(32)[::-1])
 
     def get_varlen_int(self):
         code = self.get_byte()
@@ -56,12 +56,16 @@ class BlockChain:
         elif code == 0xFF:
             return self.get_uint64()
 
+    def get_script(self):
+        script_length = self.get_varlen_int()
+        return self.get_bytes(script_length)
+
     def parse_block(self):
         magic_network_id = self.get_uint32()
         block_length = self.get_uint32()
 
-        header_to_hash = self.peek_bytes(80)[::-1]
-        block_hash = hashlib.sha256(hashlib.sha256(header_to_hash).digest()).digest()[::-1]
+        header_to_hash = self.peek_bytes(80)
+        block_hash = binascii.hexlify(hashlib.sha256(hashlib.sha256(header_to_hash).digest()).digest()[::-1])
 
         block_format_version = self.get_uint32()
         hash_of_previous_block = self.get_hash()
@@ -72,7 +76,7 @@ class BlockChain:
 
         transaction_count = self.get_varlen_int()
 
-        print("""
+        print("""\
 {}.
     hash: {}
     ver: {}
@@ -85,10 +89,10 @@ class BlockChain:
     size: {}
         """.format(
             self.block_count,
-            binascii.hexlify(block_hash),
+            block_hash,
             block_format_version,
-            binascii.hexlify(hash_of_previous_block),
-            binascii.hexlify(merkle_root),
+            hash_of_previous_block,
+            merkle_root,
             timestamp,
             bits, bits,
             nonce,
@@ -101,29 +105,48 @@ class BlockChain:
 
     def parse_transaction(self):
         version_number = self.get_uint32()
-        input_count = self.get_varlen_int()
 
-        for i in range(input_count):
-            self.parse_input()
+        input_count = self.get_varlen_int()
+        inputs = [self.parse_input() for i in range(input_count)]
 
         output_count = self.get_varlen_int()
+        outputs = [self.parse_output() for i in range(output_count)]
 
-        for i in range(output_count):
-            self.parse_output()
+        lock_time = self.get_uint32()
 
-        transaction_lock_time = self.get_uint32()
+        print("""\
+        hash: ?
+        ver: {}
+        in_sz: {}
+        out_sz: {}
+        lock_time: {}
+
+        {}
+
+        {}
+
+        """.format(
+            version_number,
+            input_count,
+            output_count,
+            lock_time,
+            inputs,
+            outputs,
+        ))
 
     def parse_input(self):
-        transaction_hash = self.get_hash()
-        transaction_index = self.get_uint32()
-        script_length = self.get_varlen_int()
-        script = self.get_bytes(script_length)
-        sequence_number = self.get_uint32()
+        return {
+            "transaction_hash": self.get_hash(),
+            "transaction_index": self.get_uint32(),
+            "script": self.get_script(),
+            "sequence_number": self.get_uint32(),
+        }
 
     def parse_output(self):
-        value = self.get_uint64()
-        script_length = self.get_varlen_int()
-        script = self.get_bytes(script_length)
+        return {
+            "value": self.get_uint64(),
+            "script": self.get_script(),
+        }
 
 
 if __name__ == "__main__":
