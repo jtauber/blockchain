@@ -19,6 +19,13 @@ def double_hash(bytestring):
     return hashlib.sha256(hashlib.sha256(bytestring).digest()).digest()
 
 
+def hash160(bytestring):
+    """
+    SHA256 hash of given bytestring followed by RIPEMD-160 hash
+    """
+    return hashlib.new('ripemd160', hashlib.sha256(bytestring).digest()).digest()
+
+
 def base58(bytestring):
     """
     base58 encode given bytestring
@@ -42,18 +49,14 @@ def base58(bytestring):
     return result[::-1]
 
 
-def public_key_to_address(public_key):
-    version = b"\00"
-    h = hashlib.new('ripemd160')
-    h.update(hashlib.sha256(public_key).digest())
-    key_hash = version + h.digest()
-    checksum = double_hash(key_hash)[:4]
-    return base58(key_hash + checksum)
-
-
 def ripemd160_to_address(key_hash):
-    checksum = double_hash(b"\00" + key_hash)[:4]
-    return base58(b"\00" + key_hash + checksum)
+    version = b"\00"
+    checksum = double_hash(version + key_hash)[:4]
+    return base58(version + key_hash + checksum)
+
+
+def public_key_to_address(public_key):
+    return ripemd160_to_address(hash160(public_key))
 
 
 class BlockChain:
