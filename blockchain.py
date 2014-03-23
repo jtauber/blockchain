@@ -23,7 +23,7 @@ class BlockChain:
     def get_bytes(self, length=1):
         data = self.data[self.index:self.index + length]
         self.index += length
-        return data
+        return data[::-1]
 
     def get_uint16(self):
         return self.get_byte() + (self.get_byte() << 8)
