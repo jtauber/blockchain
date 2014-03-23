@@ -19,6 +19,38 @@ def double_hash(bytestring):
     return hashlib.sha256(hashlib.sha256(bytestring).digest()).digest()
 
 
+def base58(bytestring):
+    """
+    base58 encode given bytestring
+    """
+    base58_characters = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    value = int(binascii.hexlify(bytestring), 16)
+
+    result = ""
+    while value >= len(base58_characters):
+        value, mod = divmod(value, len(base58_characters))
+        result += base58_characters[mod]
+    result += base58_characters[value]
+
+    # handle leading zeros
+    for byte in bytestring:
+        if byte == "\0":
+            result += base58_characters[0]
+        else:
+            break
+
+    return result[::-1]
+
+
+def public_key_to_address(public_key):
+    version = b"\00"
+    h = hashlib.new('ripemd160')
+    h.update(hashlib.sha256(public_key).digest())
+    key_hash = version + h.digest()
+    checksum = double_hash(key_hash)[:4]
+    return base58(key_hash + checksum)
+
+
 class BlockChain:
 
     def __init__(self, data):
@@ -188,3 +220,9 @@ if __name__ == "__main__":
         for block in block_chain.blocks():
             print()
             pprint.pprint(block)
+            script = block["transactions"][0]["outputs"][0]["script"]
+            if len(script) == 2 and script[1] == "OP_CHECKSIG":
+                print(public_key_to_address(script[0]))
+            else:
+                print("different script")
+            break
