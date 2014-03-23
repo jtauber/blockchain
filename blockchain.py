@@ -86,7 +86,7 @@ class BlockChain:
         script_length = self.get_varlen_int()
         script = self.get_bytestring(script_length)
 
-        script_tokens = []
+        tokens = []
 
         script_index = 0
         while script_index < script_length:
@@ -94,21 +94,21 @@ class BlockChain:
             script_index += 1
 
             if op_code <= 75:
-                script_tokens.append(script[script_index:script_index + op_code])
+                tokens.append(script[script_index:script_index + op_code])
                 script_index += op_code
             elif op_code == 118:
-                script_tokens.append("OP_DUP")
+                tokens.append("OP_DUP")
             elif op_code == 136:
-                script_tokens.append("OP_EQUALVERIFY")
+                tokens.append("OP_EQUALVERIFY")
             elif op_code == 169:
-                script_tokens.append("OP_HASH160")
+                tokens.append("OP_HASH160")
             elif op_code == 172:
-                script_tokens.append("OP_CHECKSIG")
+                tokens.append("OP_CHECKSIG")
             else:
                 print("unknown opcode", op_code)
                 raise ValueError
 
-        return script_tokens
+        return tokens
 
     ## parsing data structures in block chain
 
