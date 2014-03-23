@@ -22,9 +22,8 @@ def double_hash(bytestring):
 
 class BlockChain:
 
-    def __init__(self, data, handler=None):
+    def __init__(self, data):
         self.data = data
-        self.handler = handler
         self.index = 0
         self.block_count = 0
 
@@ -40,6 +39,9 @@ class BlockChain:
         """
         return to_hex(double_hash(self.data[mark:self.index]))
 
+
+    ## basic reading of little-endian integers of different widths
+
     def get_uint8(self):
         data = self.data[self.index]
         self.index += 1
@@ -53,6 +55,9 @@ class BlockChain:
 
     def get_uint64(self):
         return self.get_uint32() + (self.get_uint32() << 32)
+
+
+    ## more involved data reading
 
     def get_bytestring(self, length=1):
         data = self.data[self.index:self.index + length]
@@ -79,6 +84,9 @@ class BlockChain:
     def get_script(self):
         script_length = self.get_varlen_int()
         return self.get_bytestring(script_length)
+
+
+    ## parsing data structures in block chain
 
     def parse_block(self):
         assert self.get_uint32() == 0xD9B4BEF9  # magic network id
