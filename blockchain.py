@@ -2,6 +2,7 @@
 
 import binascii
 import datetime
+import hashlib
 
 
 class BlockChain:
@@ -19,6 +20,10 @@ class BlockChain:
         data = self.data[self.index]
         self.index += 1
         return data
+
+    def peek_bytes(self, length=1):
+        data = self.data[self.index:self.index + length]
+        return data[::-1]
 
     def get_bytes(self, length=1):
         data = self.data[self.index:self.index + length]
@@ -54,18 +59,30 @@ class BlockChain:
     def parse_block(self):
         magic_network_id = self.get_uint32()
         block_length = self.get_uint32()
+
+        header_to_hash = self.peek_bytes(80)[::-1]
+        block_hash = hashlib.sha256(hashlib.sha256(header_to_hash).digest()).digest()[::-1]
+
         block_format_version = self.get_uint32()
         hash_of_previous_block = self.get_hash()
         merkle_root = self.get_hash()
         timestamp = self.get_timestamp()
         bits = self.get_uint32()
         nonce = self.get_uint32()
+
         transaction_count = self.get_varlen_int()
 
         for i in range(transaction_count):
             self.parse_transaction()
 
-        print("{} prev_block_hash={} timestamp={} nonce={}".format(self.block_count, binascii.hexlify(hash_of_previous_block), timestamp, nonce))
+        print()
+        print("{} block_hash={} prev_block_hash={} timestamp={} nonce={}".format(
+            self.block_count,
+            binascii.hexlify(block_hash),
+            binascii.hexlify(hash_of_previous_block),
+            timestamp,
+            nonce,
+        ))
 
     def parse_transaction(self):
         version_number = self.get_uint32()
