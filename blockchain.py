@@ -25,10 +25,6 @@ class BlockChain:
         self.index += 1
         return data
 
-    def peek_bytes(self, length=1):
-        data = self.data[self.index:self.index + length]
-        return data
-
     def get_bytes(self, length=1):
         data = self.data[self.index:self.index + length]
         self.index += length
@@ -68,8 +64,7 @@ class BlockChain:
         magic_network_id = self.get_uint32()
         block_length = self.get_uint32()
 
-        header_to_hash = self.peek_bytes(80)
-        block_hash = binascii.hexlify(hashlib.sha256(hashlib.sha256(header_to_hash).digest()).digest()[::-1])
+        mark = self.index
 
         block_format_version = self.get_uint32()
         hash_of_previous_block = self.get_hash()
@@ -77,6 +72,8 @@ class BlockChain:
         timestamp = self.get_timestamp()
         bits = self.get_uint32()
         nonce = self.get_uint32()
+
+        block_hash = binascii.hexlify(hashlib.sha256(hashlib.sha256(self.data[mark:self.index]).digest()).digest()[::-1])
 
         transaction_count = self.get_varlen_int()
         transactions = [self.parse_transaction() for i in range(transaction_count)]
@@ -95,13 +92,18 @@ class BlockChain:
         }
 
     def parse_transaction(self):
+
+        mark = self.index
+
         version_number = self.get_uint32()
         inputs = self.parse_inputs()
         outputs = self.parse_outputs()
         lock_time = self.get_uint32()
 
+        transaction_hash = binascii.hexlify(hashlib.sha256(hashlib.sha256(self.data[mark:self.index]).digest()).digest()[::-1])
+
         return {
-            "hash": None,
+            "hash": transaction_hash,
             "var": version_number,
             "inputs": inputs,
             "outputs": outputs,
