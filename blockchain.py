@@ -40,18 +40,13 @@ class BlockChain:
         """
         return to_hex(double_hash(self.data[mark:self.index]))
 
-    def get_byte(self):
+    def get_uint8(self):
         data = self.data[self.index]
         self.index += 1
         return data
 
-    def get_bytes(self, length=1):
-        data = self.data[self.index:self.index + length]
-        self.index += length
-        return data
-
     def get_uint16(self):
-        return self.get_byte() + (self.get_byte() << 8)
+        return self.get_uint8() + (self.get_uint8() << 8)
 
     def get_uint32(self):
         return self.get_uint16() + (self.get_uint16() << 16)
@@ -59,14 +54,19 @@ class BlockChain:
     def get_uint64(self):
         return self.get_uint32() + (self.get_uint32() << 32)
 
+    def get_bytestring(self, length=1):
+        data = self.data[self.index:self.index + length]
+        self.index += length
+        return data
+
     def get_timestamp(self):
         return datetime.datetime.utcfromtimestamp(self.get_uint32())
 
     def get_hash(self):
-        return to_hex(self.get_bytes(32))
+        return to_hex(self.get_bytestring(32))
 
     def get_varlen_int(self):
-        code = self.get_byte()
+        code = self.get_uint8()
         if code < 0xFD:
             return code
         elif code == 0xFD:
@@ -78,57 +78,55 @@ class BlockChain:
 
     def get_script(self):
         script_length = self.get_varlen_int()
-        return self.get_bytes(script_length)
+        return self.get_bytestring(script_length)
 
     def parse_block(self):
-        magic_network_id = self.get_uint32()
+        assert self.get_uint32() == 0xD9B4BEF9  # magic network id
+
         block_length = self.get_uint32()
 
+        # mark current position for block hash calculation
         mark = self.index
 
-        block_format_version = self.get_uint32()
-        hash_of_previous_block = self.get_hash()
-        merkle_root = self.get_hash()
-        timestamp = self.get_timestamp()
-        bits = self.get_uint32()
-        nonce = self.get_uint32()
-
-        block_hash = self.hash_since(mark)
-
-        transaction_count = self.get_varlen_int()
-        transactions = [self.parse_transaction() for i in range(transaction_count)]
-
-        return {
-            "hash": block_hash,
-            "var": block_format_version,
-            "prev_block": hash_of_previous_block,
-            "mrkl_root": merkle_root,
-            "timestamp": timestamp,
-            "bits": bits,
-            "nonce": nonce,
-            "n_tx": transaction_count,
+        # read rest of block header
+        block_data = {
             "size": block_length,
-            "transactions": transactions,
+            "ver": self.get_uint32(),
+            "prev_block": self.get_hash(),
+            "mrkl_root": self.get_hash(),
+            "timestamp": self.get_timestamp(),
+            "bits": self.get_uint32(),
+            "nonce": self.get_uint32()
         }
+
+        # calculate hash
+        block_data["hash"] = self.hash_since(mark)
+
+        # read transactions
+        transaction_count = self.get_varlen_int()
+        block_data["transactions"] = [
+            self.parse_transaction() for i in range(transaction_count)
+        ]
+
+        return block_data
 
     def parse_transaction(self):
 
+        # mark current position for transaction hash calculation
         mark = self.index
 
-        version_number = self.get_uint32()
-        inputs = self.parse_inputs()
-        outputs = self.parse_outputs()
-        lock_time = self.get_uint32()
-
-        transaction_hash = self.hash_since(mark)
-
-        return {
-            "hash": transaction_hash,
-            "var": version_number,
-            "inputs": inputs,
-            "outputs": outputs,
-            "lock_time": lock_time,
+        # read rest of transaction data
+        transaction_data = {
+            "ver": self.get_uint32(),
+            "inputs": self.parse_inputs(),
+            "outputs": self.parse_outputs(),
+            "lock_time": self.get_uint32(),
         }
+
+        # calculate hash
+        transaction_data["hash"] = self.hash_since(mark)
+
+        return transaction_data
 
     def parse_inputs(self):
         count = self.get_varlen_int()
