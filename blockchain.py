@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-
+import binascii
 import datetime
 
 
@@ -65,7 +65,7 @@ class BlockChain:
         for i in range(transaction_count):
             self.parse_transaction()
 
-        print("{} timestamp={} nonce={}".format(self.block_count, timestamp, nonce))
+        print("{} prev_block_hash={} timestamp={} nonce={}".format(self.block_count, binascii.hexlify(hash_of_previous_block), timestamp, nonce))
 
     def parse_transaction(self):
         version_number = self.get_uint32()
