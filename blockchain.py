@@ -3,9 +3,11 @@
 import binascii
 import datetime
 import hashlib
+import pprint
 
 
 class BlockChain:
+
     def __init__(self, data, handler=None):
         self.data = data
         self.handler = handler
@@ -101,52 +103,37 @@ class BlockChain:
         ))
 
         for i in range(transaction_count):
-            self.parse_transaction()
+            pprint.pprint(self.parse_transaction())
 
     def parse_transaction(self):
         version_number = self.get_uint32()
-
-        input_count = self.get_varlen_int()
-        inputs = [self.parse_input() for i in range(input_count)]
-
-        output_count = self.get_varlen_int()
-        outputs = [self.parse_output() for i in range(output_count)]
-
+        inputs = self.parse_inputs()
+        outputs = self.parse_outputs()
         lock_time = self.get_uint32()
 
-        print("""\
-        hash: ?
-        ver: {}
-        in_sz: {}
-        out_sz: {}
-        lock_time: {}
-
-        {}
-
-        {}
-
-        """.format(
-            version_number,
-            input_count,
-            output_count,
-            lock_time,
-            inputs,
-            outputs,
-        ))
-
-    def parse_input(self):
         return {
+            "hash": None,
+            "var": version_number,
+            "inputs": inputs,
+            "outputs": outputs,
+            "lock_time": lock_time,
+        }
+
+    def parse_inputs(self):
+        count = self.get_varlen_int()
+        return [{
             "transaction_hash": self.get_hash(),
             "transaction_index": self.get_uint32(),
             "script": self.get_script(),
             "sequence_number": self.get_uint32(),
-        }
+        } for i in range(count)]
 
-    def parse_output(self):
-        return {
+    def parse_outputs(self):
+        count = self.get_varlen_int()
+        return [{
             "value": self.get_uint64(),
             "script": self.get_script(),
-        }
+        } for i in range(count)]
 
 
 if __name__ == "__main__":
