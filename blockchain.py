@@ -6,6 +6,20 @@ import hashlib
 import pprint
 
 
+def to_hex(bytestring):
+    """
+    convert given little-endian bytestring to hex
+    """
+    return binascii.hexlify(bytestring[::-1])
+
+
+def double_hash(bytestring):
+    """
+    double SHA256 hash given bytestring
+    """
+    return hashlib.sha256(hashlib.sha256(bytestring).digest()).digest()
+
+
 class BlockChain:
 
     def __init__(self, data, handler=None):
@@ -19,6 +33,12 @@ class BlockChain:
             print(self.block_count)
             pprint.pprint(self.parse_block())
             self.block_count += 1
+
+    def hash_since(self, mark):
+        """
+        double hash data from given mark to current index and return in hex
+        """
+        return to_hex(double_hash(self.data[mark:self.index]))
 
     def get_byte(self):
         data = self.data[self.index]
@@ -43,7 +63,7 @@ class BlockChain:
         return datetime.datetime.utcfromtimestamp(self.get_uint32())
 
     def get_hash(self):
-        return binascii.hexlify(self.get_bytes(32)[::-1])
+        return to_hex(self.get_bytes(32))
 
     def get_varlen_int(self):
         code = self.get_byte()
@@ -73,7 +93,7 @@ class BlockChain:
         bits = self.get_uint32()
         nonce = self.get_uint32()
 
-        block_hash = binascii.hexlify(hashlib.sha256(hashlib.sha256(self.data[mark:self.index]).digest()).digest()[::-1])
+        block_hash = self.hash_since(mark)
 
         transaction_count = self.get_varlen_int()
         transactions = [self.parse_transaction() for i in range(transaction_count)]
@@ -100,7 +120,7 @@ class BlockChain:
         outputs = self.parse_outputs()
         lock_time = self.get_uint32()
 
-        transaction_hash = binascii.hexlify(hashlib.sha256(hashlib.sha256(self.data[mark:self.index]).digest()).digest()[::-1])
+        transaction_hash = self.hash_since(mark)
 
         return {
             "hash": transaction_hash,
