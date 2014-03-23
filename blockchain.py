@@ -3,7 +3,6 @@
 import binascii
 import datetime
 import hashlib
-import pprint
 
 
 def to_hex(bytestring):
@@ -27,10 +26,12 @@ class BlockChain:
         self.index = 0
         self.block_count = 0
 
-        while self.block_count < 2: #self.index < len(self.data):
-            print()
-            print(self.block_count)
-            pprint.pprint(self.parse_block())
+    def blocks(self):
+        """
+        yields blocks one at a time
+        """
+        while self.index < len(self.data):
+            yield self.parse_block()
             self.block_count += 1
 
     def hash_since(self, mark):
@@ -154,9 +155,13 @@ class BlockChain:
 
 
 if __name__ == "__main__":
+    import pprint
     import sys
 
     filename = sys.argv[1]
     with open(filename, "rb") as f:
         data = f.read()
-        BlockChain(data)
+        block_chain = BlockChain(data)
+        for block in block_chain.blocks():
+            print()
+            pprint.pprint(block)
