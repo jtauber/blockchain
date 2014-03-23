@@ -218,7 +218,6 @@ class BlockChain:
 
 
 if __name__ == "__main__":
-    import pprint
     import sys
 
     filename = sys.argv[1]
@@ -226,12 +225,17 @@ if __name__ == "__main__":
         data = f.read()
         block_chain = BlockChain(data)
         for block_num, block in enumerate(block_chain.blocks()):
-            # print()
-            # pprint.pprint(block)
-            print(block_num)
-            for transaction in block["transactions"]:
-                for output in transaction["outputs"]:
-                    print(output["value"] / 100000000, end=" -> ")
+            print()
+            print("BLOCK", block_num, block["hash"])
+            for transaction_num, transaction in enumerate(block["transactions"]):
+                print("  Transaction", transaction_num, transaction["hash"])
+                for inp in transaction["inputs"]:
+                    if inp["transaction_hash"] == b"0000000000000000000000000000000000000000000000000000000000000000":
+                        print("    GENERATED ->")
+                    else:
+                        print("   ", inp["transaction_hash"], inp["transaction_index"], "->")
+                for output_num, output in enumerate(transaction["outputs"]):
+                    print("   ", output_num, output["value"] / 100000000, end=" -> ")
                     script = output["script"]
                     if len(script) == 2 and script[1] == "OP_CHECKSIG":
                         print("public-key", public_key_to_address(script[0]))
