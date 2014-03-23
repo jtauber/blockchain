@@ -217,12 +217,21 @@ if __name__ == "__main__":
     with open(filename, "rb") as f:
         data = f.read()
         block_chain = BlockChain(data)
-        for block in block_chain.blocks():
-            print()
-            pprint.pprint(block)
-            script = block["transactions"][0]["outputs"][0]["script"]
-            if len(script) == 2 and script[1] == "OP_CHECKSIG":
-                print(public_key_to_address(script[0]))
-            else:
-                print("different script")
-            break
+        for block_num, block in enumerate(block_chain.blocks()):
+            # print()
+            # pprint.pprint(block)
+            print(block_num)
+            for transaction in block["transactions"]:
+                for output in transaction["outputs"]:
+                    print(output["value"] / 100000000, end=" -> ")
+                    script = output["script"]
+                    if len(script) == 2 and script[1] == "OP_CHECKSIG":
+                        print(public_key_to_address(script[0]))
+                    elif len(script) == 5 and (
+                        script[0] == "OP_DUP" and
+                        script[1] == "OP_HASH160" and
+                        script[3] == "OP_EQUALVERIFY" and
+                        script[4] == "OP_CHECKSIG"):
+                        print("address-type") # @@@
+                    else:
+                        print("indecipherable script")
