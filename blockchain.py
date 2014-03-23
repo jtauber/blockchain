@@ -51,6 +51,11 @@ def public_key_to_address(public_key):
     return base58(key_hash + checksum)
 
 
+def ripemd160_to_address(key_hash):
+    checksum = double_hash(b"\00" + key_hash)[:4]
+    return base58(b"\00" + key_hash + checksum)
+
+
 class BlockChain:
 
     def __init__(self, data):
@@ -226,12 +231,12 @@ if __name__ == "__main__":
                     print(output["value"] / 100000000, end=" -> ")
                     script = output["script"]
                     if len(script) == 2 and script[1] == "OP_CHECKSIG":
-                        print(public_key_to_address(script[0]))
+                        print("public-key", public_key_to_address(script[0]))
                     elif len(script) == 5 and (
                         script[0] == "OP_DUP" and
                         script[1] == "OP_HASH160" and
                         script[3] == "OP_EQUALVERIFY" and
                         script[4] == "OP_CHECKSIG"):
-                        print("address-type") # @@@
+                        print("address-type", ripemd160_to_address(script[2]))
                     else:
                         print("indecipherable script")
