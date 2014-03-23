@@ -15,7 +15,9 @@ class BlockChain:
         self.block_count = 0
 
         while self.block_count < 2: #self.index < len(self.data):
-            self.parse_block()
+            print()
+            print(self.block_count)
+            pprint.pprint(self.parse_block())
             self.block_count += 1
 
     def get_byte(self):
@@ -77,33 +79,20 @@ class BlockChain:
         nonce = self.get_uint32()
 
         transaction_count = self.get_varlen_int()
+        transactions = [self.parse_transaction() for i in range(transaction_count)]
 
-        print("""\
-{}.
-    hash: {}
-    ver: {}
-    prev_block: {}
-    mrkl_root: {}
-    timestamp: {}
-    bits: {} [0x{:X}]
-    nonce: {}
-    n_tx: {}
-    size: {}
-        """.format(
-            self.block_count,
-            block_hash,
-            block_format_version,
-            hash_of_previous_block,
-            merkle_root,
-            timestamp,
-            bits, bits,
-            nonce,
-            transaction_count,
-            block_length,
-        ))
-
-        for i in range(transaction_count):
-            pprint.pprint(self.parse_transaction())
+        return {
+            "hash": block_hash,
+            "var": block_format_version,
+            "prev_block": hash_of_previous_block,
+            "mrkl_root": merkle_root,
+            "timestamp": timestamp,
+            "bits": bits,
+            "nonce": nonce,
+            "n_tx": transaction_count,
+            "size": block_length,
+            "transactions": transactions,
+        }
 
     def parse_transaction(self):
         version_number = self.get_uint32()
