@@ -136,6 +136,8 @@ class BlockChain:
             if op_code <= 75:
                 tokens.append(script[script_index:script_index + op_code])
                 script_index += op_code
+            elif op_code == 97:
+                tokens.append("OP_NOP")
             elif op_code == 118:
                 tokens.append("OP_DUP")
             elif op_code == 136:
