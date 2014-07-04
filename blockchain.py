@@ -80,7 +80,6 @@ class BlockChain:
         """
         return to_hex(double_hash(self.data[mark:self.index]))
 
-
     ## basic reading of little-endian integers of different widths
 
     def get_uint8(self):
@@ -96,7 +95,6 @@ class BlockChain:
 
     def get_uint64(self):
         return self.get_uint32() + (self.get_uint32() << 32)
-
 
     ## more involved data reading
 
@@ -245,7 +243,8 @@ if __name__ == "__main__":
                         script[0] == "OP_DUP" and
                         script[1] == "OP_HASH160" and
                         script[3] == "OP_EQUALVERIFY" and
-                        script[4] == "OP_CHECKSIG"):
+                        script[4] == "OP_CHECKSIG"
+                    ):
                         print("address-type", ripemd160_to_address(script[2]))
                     else:
                         print("indecipherable script")

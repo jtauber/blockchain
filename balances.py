@@ -17,7 +17,7 @@ with open(filename, "rb") as f:
         for transaction in block["transactions"]:
             for inp in transaction["inputs"]:
                 if inp["transaction_hash"] == b"0000000000000000000000000000000000000000000000000000000000000000":
-                    pass # generated
+                    pass  # generated
                 else:
                     address, value = OUTPUTS[(inp["transaction_hash"], inp["transaction_index"])]
                     BALANCES[address] -= value
@@ -32,12 +32,13 @@ with open(filename, "rb") as f:
                     script[0] == "OP_DUP" and
                     script[1] == "OP_HASH160" and
                     script[3] == "OP_EQUALVERIFY" and
-                    script[4] == "OP_CHECKSIG"):
+                    script[4] == "OP_CHECKSIG"
+                ):
                     address = ripemd160_to_address(script[2])
                 else:
                     address = "invalid"
                 OUTPUTS[(transaction_hash, output_num)] = address, value
                 BALANCES[address] += value
 
-for address, balance in sorted(BALANCES.items(), key=lambda x:x[1]):
+for address, balance in sorted(BALANCES.items(), key=lambda x: x[1]):
     print(address, balance / 100000000)
